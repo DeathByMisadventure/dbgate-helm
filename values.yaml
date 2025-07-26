@@ -60,7 +60,7 @@ ingress:
   tls: {}
     # secretName: dbgate-tls
     # hosts:
-    #   - dbgate.local
+    #   - dbgate.lvh.me
 
 # -- Secrets for private image registries
 imagePullSecrets: []
