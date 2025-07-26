@@ -30,10 +30,15 @@ dbgate:
       cpu: "200m"
       memory: "256Mi"
   # -- Pod security context
-  securityContext: {}
-    # runAsUser: 1000
-    # runAsGroup: 1000
-    # fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
   service:
     # -- Service type (e.g., ClusterIP)
     type: ClusterIP
