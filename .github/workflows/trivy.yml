@@ -29,7 +29,7 @@ jobs:
           scan-type: 'config'
           hide-progress: false
           format: 'sarif'
-          scan-ref: './charts' # Specify the path to your Helm chart directory
+          scan-ref: './' # Specify the path to your Helm chart directory
           output: 'trivy-results.sarif'
           exit-code: '1'
           ignore-unfixed: true
