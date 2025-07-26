@@ -1,0 +1,18 @@
+apiVersion: v2
+name: dbgate
+description: A Helm chart for deploying DbGate, a powerful database management tool, on Kubernetes
+type: application
+version: 1.0.0
+appVersion: "5.3.4"
+home: https://github.com/your-username/dbgate-helm
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+sources:
+  - https://github.com/dbgate/dbgate
+keywords:
+  - database
+  - dbgate
+  - management
+annotations:
+  artifacthub.io/category: database

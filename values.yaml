@@ -1,0 +1,67 @@
+# Default values for dbgate.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+dbgate:
+  # -- Container name
+  name: dbgate
+  image:
+    # -- Image repository
+    repository: dbgate/dbgate
+    # -- Image tag (defaults to Chart AppVersion)
+    tag: latest
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Number of pod replicas
+  replicas: 1
+  pvc:
+    # -- PVC size for /root/.dbgate
+    storageRequest: 1Gi
+    # -- Storage Class Name for PVC or pre-provisioned PV
+    storageClassName: ""
+    # -- Selector to match pre-provisioned PV
+    selector: ""
+  # -- Pod assigned resources
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  # -- Pod security context
+  securityContext: {}
+    # runAsUser: 1000
+    # runAsGroup: 1000
+    # fsGroup: 1000
+  service:
+    # -- Service type (e.g., ClusterIP)
+    type: ClusterIP
+    # -- Service port number
+    port: 3000
+  # -- Environment variables for DbGate (Reference: https://dbgate.org/docs/env-variables/)
+  config:
+    DB_PORT: "3000"
+    # Add other environment variables as needed
+
+# -- Ingress configuration
+ingress:
+  # -- Enable Ingress
+  enabled: true
+  # -- Ingress class type
+  className: "nginx"
+  # -- Ingress annotations
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+  # -- Ingress external hostname
+  hostname: dbgate.nuc.chadamberg.com
+  # -- TLS configuration with a secret
+  tls: {}
+    # secretName: dbgate-tls
+    # hosts:
+    #   - dbgate.local
+
+# -- Secrets for private image registries
+imagePullSecrets: []
+  # - name: my-registry-secret

@@ -1,0 +1,180 @@
+# DBGate Helm Chart
+
+{{ template "chart.description" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## About DbGate
+
+DbGate is a cross-platform database manager that supports a wide range of databases, including MySQL, PostgreSQL, SQL Server, SQLite, and more. It provides a web-based interface for managing databases, executing queries, and visualizing data.
+
+**Key Features:**
+
+1. **Multi-Database Support**: Connect to various database engines from a single interface.
+2. **Web-Based Interface**: Access DbGate through a browser for easy management.
+3. **Query Execution**: Run SQL queries with a powerful editor and view results.
+4. **Data Visualization**: Visualize data with charts and export capabilities.
+5. **Open-Source**: Fully customizable and community-driven.
+
+**Benefits:**
+
+1. **Versatility**: Supports multiple database types, making it ideal for diverse environments.
+2. **Ease of Use**: Intuitive web interface simplifies database management.
+3. **Self-Hosted**: Deploy on your infrastructure for full control over data.
+4. **Customizable**: Open-source nature allows for tailored configurations.
+
+## Prerequisites
+
+- A Kubernetes cluster (version >1.19).
+- Helm 3 installed.
+- `kubectl` configured to interact with your cluster.
+- A default StorageClass configured in the cluster for dynamic PVC provisioning.
+
+## Configure values.yaml or valuesoverride.yaml
+
+Customize the deployment by editing `values.yaml` or creating a `local-values.yaml` file with overrides. Key configurations include:
+
+- `dbgate.image`: Specify the DbGate image repository, tag, and pull policy.
+- `dbgate.pvc`: Configure the PVC for `/root/.dbgate` (storage size, storage class, or selector for pre-provisioned PV).
+- `dbgate.config`: Set environment variables for DbGate (e.g., `DB_PORT`).
+- `ingress`: Enable and configure Ingress for external access.
+- `resources` and `securityContext`: Define resource limits and security settings.
+
+Additional configuration options are available at [DbGate Documentation](https://dbgate.org/docs/env-variables/).
+
+## Dynamic PVC Provisioning
+
+This chart uses dynamic provisioning for the PVC by default, with `dbgate.pvc.storageClassName` set to `""` to use the cluster's default StorageClass. Ensure your cluster has a default StorageClass configured:
+
+```bash
+kubectl get storageclass
+```
+
+Look for a StorageClass with `(default)` in the output. If none exists, create or annotate a StorageClass as default:
+
+```bash
+kubectl patch storageclass <storage-class-name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+If you prefer a specific StorageClass, set `dbgate.pvc.storageClassName` to its name in `values.yaml`.
+
+## Enabling Ingress
+
+If you lack an Ingress controller, enable `ingress.enabled` in `values.yaml` to use an external Ingress solution or configure one separately. For NGINX Ingress, set `ingress.className` to `nginx` and provide TLS settings if needed.
+
+To use a TLS certificate, create a secret:
+
+```bash
+kubectl create --namespace dbgate secret tls dbgate-tls-cert --cert=tls.crt --key=tls.key
+```
+
+Then configure `ingress.tls` in `values.yaml`:
+
+```yaml
+ingress:
+  enabled: true
+  hostname: dbgate.nuc.chadamberg.com
+  tls:
+    - secretName: dbgate-tls-cert
+      hosts:
+        - dbgate.nuc.chadamberg.com
+```
+
+## Deployment
+
+1. Verify your cluster's default StorageClass:
+
+```bash
+kubectl get storageclass
+```
+
+Ensure a default StorageClass is set, or the PVC will fail to bind.
+
+2. Create a namespace if needed:
+
+```bash
+kubectl create ns dbgate
+```
+
+3. Customize values by creating a `local-values.yaml` file with overrides from `values.yaml`.
+
+4. Install the Helm chart:
+
+```bash
+helm install --namespace dbgate -f ./local-values.yaml dbgate .
+```
+
+5. Access DbGate via the Ingress hostname (e.g., `http://dbgate.nuc.chadamberg.com`) or use `kubectl port-forward` for testing:
+
+```bash
+kubectl port-forward svc/dbgate-dbgate 3000:3000 -n dbgate
+```
+
+Then open `http://localhost:3000` in your browser.
+
+## Troubleshooting PVC Binding Issues
+
+If you encounter the error `pod has unbound immediate PersistentVolumeClaims`, it means the PVC cannot bind to a Persistent Volume. To resolve:
+
+1. **Verify Default StorageClass**:
+   - Run `kubectl get storageclass` to confirm a default StorageClass exists (marked with `(default)`).
+   - If none is set, annotate an existing StorageClass as default:
+
+```bash
+kubectl patch storageclass <storage-class-name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+   - Alternatively, set `dbgate.pvc.storageClassName` to a specific StorageClass name in `values.yaml`.
+
+2. **Check PVC Status**:
+   - Verify the PVC is bound:
+
+```bash
+kubectl get pvc -n dbgate
+```
+
+   - If the PVC is `Pending`, describe it for errors:
+
+```bash
+kubectl describe pvc dbgate-dbgate-pvc -n dbgate
+```
+
+3. **Check Pod Events**:
+   - Describe the pod to diagnose further:
+
+```bash
+kubectl describe pod -l app=dbgate -n dbgate
+```
+
+4. **Use a Pre-Provisioned PV (Optional)**:
+   - If dynamic provisioning is unavailable, create a PV:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dbgate-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: /tmp/dbgate-pv
+```
+
+   - Apply it:
+
+```bash
+kubectl apply -f pv.yaml
+```
+
+   - Set `dbgate.pvc.storageClassName: standard` and `dbgate.pvc.selector: dbgate-pv` in `values.yaml`.
+
+{{ template "chart.valuesSection" . }}
