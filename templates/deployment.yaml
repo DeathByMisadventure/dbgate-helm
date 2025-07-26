@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-dbgate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.dbgate.name }}
+spec:
+  replicas: {{ .Values.dbgate.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.dbgate.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbgate.name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.dbgate.name }}
+          image: "{{ .Values.dbgate.image.repository }}:{{ .Values.dbgate.image.tag }}"
+          imagePullPolicy: {{ .Values.dbgate.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dbgate.service.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.dbgate.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: dbgate-data
+              mountPath: /root/.dbgate
+          resources:
+            {{- toYaml .Values.dbgate.resources | nindent 12 }}
+          {{- if .Values.dbgate.securityContext }}
+          securityContext:
+            {{- toYaml .Values.dbgate.securityContext | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: dbgate-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-dbgate-pvc

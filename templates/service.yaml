@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-dbgate
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ .Values.dbgate.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.dbgate.service.port }}
+      targetPort: {{ .Values.dbgate.service.port }}
+  type: {{ .Values.dbgate.service.type }}
