@@ -21,7 +21,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.dbgate.name }}
-          image: "{{ .Values.dbgate.image.repository }}:{{ .Values.dbgate.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.dbgate.image.repository }}:{{ if .Values.dbgate.image.tag }}{{ .Values.dbgate.image.tag }}{{ else }}{{ .Chart.AppVersion }}{{ end }}"
           imagePullPolicy: {{ .Values.dbgate.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.dbgate.service.port }}

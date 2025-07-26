@@ -9,7 +9,7 @@ dbgate:
     # -- Image repository
     repository: dbgate/dbgate
     # -- Image tag (defaults to Chart AppVersion)
-    tag: latest
+    tag:
     # -- Image pull policy
     pullPolicy: IfNotPresent
   # -- Number of pod replicas
