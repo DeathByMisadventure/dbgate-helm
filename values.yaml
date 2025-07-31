@@ -32,7 +32,7 @@ dbgate:
   # -- Pod security context
   securityContext:
     allowPrivilegeEscalation: false
-    runAsNonRoot: true
+    runAsNonRoot: false
     readOnlyRootFilesystem: true
     capabilities:
       drop:
