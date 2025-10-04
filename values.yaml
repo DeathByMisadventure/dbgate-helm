@@ -37,8 +37,6 @@ dbgate:
     capabilities:
       drop:
         - ALL
-    seccompProfile:
-      type: RuntimeDefault
   service:
     # -- Service type (e.g., ClusterIP)
     type: ClusterIP
